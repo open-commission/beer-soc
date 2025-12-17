@@ -3,6 +3,7 @@ const beer_soc = @import("beer_soc");
 const cobsr = @cImport({
     @cInclude("cobsr.h");
 });
+
 pub fn main() !void {
     // 原始数据
     const original_data: [6]u8 = [_]u8{ 0x01, 0x00, 0x02, 0x03, 0x00, 0x04 };
@@ -20,6 +21,13 @@ pub fn main() !void {
     }
 
     std.debug.print("Encoded {} bytes into {} bytes\n", .{ original_data.len, encode_result.out_len });
+    
+    // 打印编码后的数据
+    std.debug.print("Encoded data: ", .{});
+    for (encoded_data[0..encode_result.out_len]) |byte| {
+        std.debug.print("{X:0>2} ", .{byte});
+    }
+    std.debug.print("\n", .{});
 
     // 解码过程
     const decoded_max_len = cobsr.COBSR_DECODE_DST_BUF_LEN_MAX(encode_result.out_len);
