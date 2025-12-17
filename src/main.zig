@@ -1,34 +1,46 @@
 const std = @import("std");
 const beer_soc = @import("beer_soc");
-const cobs_c = @cImport({
-    @cInclude("cobs.h");
+const cobsr = @cImport({
+    @cInclude("cobsr.h");
 });
 pub fn main() !void {
-    // 准备数据
-    const source_data: [10]u8 = [_]u8{ 1, 2, 3, 4, 5, 0, 6, 7, 8, 9 };
-    var destination_buffer: [20]u8 = undefined;
+    // 原始数据
+    const original_data: [6]u8 = [_]u8{ 0x01, 0x00, 0x02, 0x03, 0x00, 0x04 };
 
-    // 正确调用 cobs_encode
-    const result = cobs_c.cobs_encode(&destination_buffer, destination_buffer.len, &source_data, source_data.len);
+    // 计算编码后所需的最大缓冲区大小
+    const encoded_max_len = cobsr.COBSR_ENCODE_DST_BUF_LEN_MAX(original_data.len);
+    var encoded_data: [20]u8 = undefined; // 使用足够大的缓冲区
 
-    std.debug.print("Encoding result: {}\n", .{result});
-}
+    // 编码过程
+    const encode_result = cobsr.cobsr_encode(&encoded_data, encoded_max_len, &original_data, original_data.len);
 
-test "simple test" {
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(i32) = .empty;
-    defer list.deinit(gpa); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(gpa, 42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
+    if (encode_result.status != cobsr.COBSR_ENCODE_OK) {
+        std.debug.print("Encoding failed with status: {}\n", .{encode_result.status});
+        return error.EncodingFailed;
+    }
 
-test "fuzz example" {
-    const Context = struct {
-        fn testOne(context: @This(), input: []const u8) anyerror!void {
-            _ = context;
-            // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-            try std.testing.expect(!std.mem.eql(u8, "canyoufindme", input));
-        }
-    };
-    try std.testing.fuzz(Context{}, Context.testOne, .{});
+    std.debug.print("Encoded {} bytes into {} bytes\n", .{ original_data.len, encode_result.out_len });
+
+    // 解码过程
+    const decoded_max_len = cobsr.COBSR_DECODE_DST_BUF_LEN_MAX(encode_result.out_len);
+    var decoded_data: [20]u8 = undefined; // 使用足够大的缓冲区
+
+    const decode_result = cobsr.cobsr_decode(&decoded_data, decoded_max_len, &encoded_data, encode_result.out_len);
+
+    if (decode_result.status != cobsr.COBSR_DECODE_OK) {
+        std.debug.print("Decoding failed with status: {}\n", .{decode_result.status});
+        return error.DecodingFailed;
+    }
+
+    std.debug.print("Decoded back to {} bytes\n", .{decode_result.out_len});
+
+    // 验证数据一致性
+    if (decode_result.out_len == original_data.len and
+        std.mem.eql(u8, original_data[0..], decoded_data[0..decode_result.out_len]))
+    {
+        std.debug.print("Success: Original and decoded data match!\n", .{});
+    } else {
+        std.debug.print("Error: Data mismatch after decode\n", .{});
+        return error.DataMismatch;
+    }
 }
