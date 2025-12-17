@@ -83,6 +83,13 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    // 链接C代码
+    exe.root_module.link_libc = true;
+    exe.root_module.addIncludePath(b.path("src/c/cobs/"));
+    exe.root_module.addCSourceFiles(.{
+        .files = &[_][]const u8{ "src/c/cobs/cobs.c", "src/c/cobs/cobsr.c" },
+        .flags = &[_][]const u8{ "-Wall", "-Wextra" },
+    });
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default
     // step). By default the install prefix is `zig-out/` but can be overridden

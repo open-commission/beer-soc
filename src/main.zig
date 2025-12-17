@@ -1,10 +1,17 @@
 const std = @import("std");
 const beer_soc = @import("beer_soc");
-
+const cobs_c = @cImport({
+    @cInclude("cobs.h");
+});
 pub fn main() !void {
-    // Prints to stderr, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-    try beer_soc.bufferedPrint();
+    // 准备数据
+    const source_data: [10]u8 = [_]u8{ 1, 2, 3, 4, 5, 0, 6, 7, 8, 9 };
+    var destination_buffer: [20]u8 = undefined;
+
+    // 正确调用 cobs_encode
+    const result = cobs_c.cobs_encode(&destination_buffer, destination_buffer.len, &source_data, source_data.len);
+
+    std.debug.print("Encoding result: {}\n", .{result});
 }
 
 test "simple test" {
