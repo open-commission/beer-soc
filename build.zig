@@ -85,9 +85,20 @@ pub fn build(b: *std.Build) void {
 
     // 链接C代码
     exe.root_module.link_libc = true;
-    exe.root_module.addIncludePath(b.path("src/c/cobs/"));
+    exe.root_module.addIncludePath(b.path("src/c/"));
     exe.root_module.addCSourceFiles(.{
-        .files = &[_][]const u8{ "src/c/cobs/cobs.c", "src/c/cobs/cobsr.c" },
+        .files = &[_][]const u8{
+            "src/c/cobs/cobs.c",
+            "src/c/cobs/cobsr.c",
+
+             "src/c/crc/crc8.c",
+             "src/c/crc/crc16.c",
+             "src/c/crc/crc32.c",
+             "src/c/crc/crc64.c",
+             "src/c/crc/crc_poly.c",
+             // "src/c/crc/crchash.cpp",
+             // "src/c/crc/crchash.h"
+        },
         .flags = &[_][]const u8{ "-Wall", "-Wextra" },
     });
     // This declares intent for the executable to be installed into the
