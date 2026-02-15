@@ -1,0 +1,17 @@
+基础通信层分类
+1. 串行异步/同步接口（点对点或短总线）
+接口	特点	Linux 驱动表现
+UART	异步串口，TX/RX	/dev/ttyS*、/dev/ttyUSB*（USB CDC 虚拟串口）
+SPI	同步，主从，多线（MISO/MOSI/SCLK/CS）	/dev/spidev*
+I²C	同步，两线总线（SDA/SCL）	/dev/i2c-*
+LIN	低速主从，总线	/dev/tty*（通常软串口驱动）
+2. 总线型接口（多节点，带校验）
+接口	特点	Linux 驱动表现
+CAN	多节点，总线，硬件 CRC	/dev/can*
+CAN FD	CAN 扩展，帧长更大	/dev/can*
+USB (原生设备)	点对点，支持多设备类	/dev/ttyUSB*（CDC）、HID 类设备等
+3. 网络接口（以太网/无线物理层）
+接口	特点	Linux 驱动表现
+TCP/UDP	基于网卡/PHY，IP 层以上封装	/dev/net/tun（虚拟接口）或标准 socket API
+Raw Ethernet	直接以太网帧	/dev/eth* + 原始套接字
+Wi-Fi / BLE / LoRa PHY	无线物理层	网卡/设备节点 + 驱动
